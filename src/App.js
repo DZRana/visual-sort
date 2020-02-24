@@ -7,12 +7,12 @@ class App extends Component {
     super();
     this.state = {
       numbers: 0,
-      isBubbleSort: false,
+      sortType: "",
       data: {
         labels: [],
         datasets: [
           {
-            label: "Dataset",
+            label: "Data",
             backgroundColor: "rgba(255,99,131,0.2)",
             borderColor: "rgba(255,99,131,1)",
             borderWidth: 1,
@@ -30,15 +30,10 @@ class App extends Component {
   };
 
   handleSortChange = event => {
-    const target = event.target;
-    const value = target.type === "checkbox" ? target.checked : target.value;
-    const name = target.name;
-    this.setState({
-      [name]: value
-    });
+    this.setState({ sortType: event.target.id });
   };
 
-  handleSubmit = () => {
+  handleNumberSubmit = () => {
     let labels = [];
     let dataset = [];
     for (let i = 0; i < this.state.numbers; i++) {
@@ -59,6 +54,39 @@ class App extends Component {
     });
   };
 
+  handleSortSubmit = () => {
+    const { sortType } = this.state;
+    const { data } = this.state.data.datasets[0];
+
+    switch (sortType) {
+      case "bubbleSort":
+        for (let i = 0; i < data.length; i++) {
+          for (let j = 0; j < data.length; j++) {
+            if (data[j] > data[j + 1]) {
+              let temp = data[j];
+              data[j] = data[j + 1];
+              data[j + 1] = temp;
+            }
+          }
+        }
+        this.setState({
+          data: {
+            labels: data,
+            datasets: [
+              {
+                ...this.state.data.datasets[0],
+                data: data
+              }
+            ]
+          }
+        });
+        break;
+
+      default:
+        break;
+    }
+  };
+
   render() {
     const { data } = this.state;
     return (
@@ -72,18 +100,27 @@ class App extends Component {
               numbers={this.state.numbers}
               onChange={this.handleNumberChange}
             />
-            <button onClick={this.handleSubmit}>Submit</button>
+            <button onClick={this.handleNumberSubmit}>New Data</button>
           </label>
         </div>
         <div>
           <label>
             Sort:
             <input
-              name="bubbleSort"
-              type="checkbox"
-              checked={this.state.isBubbleSort}
+              type="radio"
+              id="bubbleSort"
+              name="sortType"
               onChange={this.handleSortChange}
             />
+            <label htmlFor="bubbleSort">Bubble Sort</label>
+            <input
+              type="radio"
+              id="mergeSort"
+              name="sortType"
+              onChange={this.handleSortChange}
+            />
+            <label htmlFor="mergeSort">Merge Sort</label>
+            <button onClick={this.handleSortSubmit}>Sort!</button>
           </label>
         </div>
       </div>
