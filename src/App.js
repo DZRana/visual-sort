@@ -8,6 +8,7 @@ class App extends Component {
     this.state = {
       numbers: 0,
       sortType: "",
+      sortSpeed: "",
       data: {
         labels: [],
         datasets: [
@@ -29,8 +30,12 @@ class App extends Component {
     this.setState({ numbers: event.target.value });
   };
 
-  handleSortChange = event => {
+  handleSortTypeChange = event => {
     this.setState({ sortType: event.target.id });
+  };
+
+  handleSortSpeedChange = event => {
+    this.setState({ sortSpeed: event.target.id });
   };
 
   handleNumberSubmit = () => {
@@ -54,32 +59,97 @@ class App extends Component {
     });
   };
 
+  animateSwaps = (orderedSwaps, cntr, ms) => {
+    this.setState({
+      data: {
+        labels: orderedSwaps[cntr],
+        datasets: [
+          {
+            ...this.state.data.datasets[0],
+            data: orderedSwaps[cntr]
+          }
+        ]
+      }
+    });
+    cntr++;
+    if (cntr < orderedSwaps.length) {
+      setTimeout(() => this.animateSwaps(orderedSwaps, cntr, ms), ms);
+    }
+  };
+
+  sortCheck = (data, mySortResult) => {
+    let dataCopy = data.slice();
+    let jsSort = dataCopy.sort((a, b) => a - b);
+    for (let i = 0; i < dataCopy.length; i++) {
+      if (jsSort[i] !== mySortResult[i])
+        throw new Error("Implementation result does not match JS sort result");
+    }
+  };
+
   handleSortSubmit = () => {
-    const { sortType } = this.state;
+    const { sortSpeed, sortType } = this.state;
     const { data } = this.state.data.datasets[0];
+    let dataCopy = data.slice();
+    let ms = 0;
+    let orderedSwaps = [];
+
+    switch (sortSpeed) {
+      case "slowSort":
+        ms = 1000;
+        break;
+      case "fastSort":
+        ms = 100;
+        break;
+      case "fastestSort":
+        ms = 1;
+        break;
+      default:
+        break;
+    }
 
     switch (sortType) {
       case "bubbleSort":
-        for (let i = 0; i < data.length; i++) {
-          for (let j = 0; j < data.length; j++) {
-            if (data[j] > data[j + 1]) {
-              let temp = data[j];
-              data[j] = data[j + 1];
-              data[j + 1] = temp;
+        orderedSwaps = [];
+        for (let i = 0; i < dataCopy.length; i++) {
+          for (let j = 0; j < dataCopy.length; j++) {
+            if (dataCopy[j] > dataCopy[j + 1]) {
+              let temp = dataCopy[j];
+              dataCopy[j] = dataCopy[j + 1];
+              dataCopy[j + 1] = temp;
+              orderedSwaps.push(dataCopy.slice());
             }
           }
         }
-        this.setState({
-          data: {
-            labels: data,
-            datasets: [
-              {
-                ...this.state.data.datasets[0],
-                data: data
-              }
-            ]
+        this.animateSwaps(orderedSwaps, 0, ms);
+        try {
+          this.sortCheck(data, orderedSwaps[orderedSwaps.length - 1]);
+        } catch (e) {
+          console.error(e);
+        }
+        break;
+
+      case "selectionSort":
+        orderedSwaps = [];
+        for (let i = 0; i < dataCopy.length; i++) {
+          let min = dataCopy[i];
+          let ndx = i;
+          for (let j = i; j < dataCopy.length; j++) {
+            if (dataCopy[j] < min) {
+              min = dataCopy[j];
+              ndx = j;
+            }
           }
-        });
+          let temp = dataCopy[i];
+          dataCopy[i] = min;
+          dataCopy[ndx] = temp;
+          orderedSwaps.push(dataCopy.slice());
+        }
+        this.animateSwaps(orderedSwaps, 0, ms);
+        try {
+          this.sortCheck(data, orderedSwaps[orderedSwaps.length - 1]);
+        } catch (e) {
+          console.error(e);
+        }
         break;
 
       default:
@@ -110,16 +180,42 @@ class App extends Component {
               type="radio"
               id="bubbleSort"
               name="sortType"
-              onChange={this.handleSortChange}
+              onChange={this.handleSortTypeChange}
             />
             <label htmlFor="bubbleSort">Bubble Sort</label>
             <input
               type="radio"
-              id="mergeSort"
+              id="selectionSort"
               name="sortType"
-              onChange={this.handleSortChange}
+              onChange={this.handleSortTypeChange}
             />
-            <label htmlFor="mergeSort">Merge Sort</label>
+            <label htmlFor="selectionSort">Selection Sort</label>
+          </label>
+        </div>
+        <div>
+          <label>
+            Speed:
+            <input
+              type="radio"
+              id="slowSort"
+              name="sortSpeed"
+              onChange={this.handleSortSpeedChange}
+            />
+            <label htmlFor="slowSort">Slow</label>
+            <input
+              type="radio"
+              id="fastSort"
+              name="sortSpeed"
+              onChange={this.handleSortSpeedChange}
+            />
+            <label htmlFor="fastSort">Fast</label>
+            <input
+              type="radio"
+              id="fastestSort"
+              name="sortSpeed"
+              onChange={this.handleSortSpeedChange}
+            />
+            <label htmlFor="fastSort">Fastest</label>
             <button onClick={this.handleSortSubmit}>Sort!</button>
           </label>
         </div>
