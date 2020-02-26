@@ -7,8 +7,11 @@ class App extends Component {
     super();
     this.state = {
       numbers: 0,
+      beforeSort: [],
       sortType: "",
       sortSpeed: "",
+      sortingActive: false,
+      sortingPaused: false,
       data: {
         labels: [],
         datasets: [
@@ -47,6 +50,7 @@ class App extends Component {
       dataset.push(rnd);
     }
     this.setState({
+      beforeSort: dataset,
       data: {
         labels: labels,
         datasets: [
@@ -59,26 +63,58 @@ class App extends Component {
     });
   };
 
-  animateSwaps = (orderedSwaps, cntr, ms) => {
+  handleReset = () => {
     this.setState({
       data: {
-        labels: orderedSwaps[cntr],
+        labels: this.state.beforeSort,
         datasets: [
           {
             ...this.state.data.datasets[0],
-            data: orderedSwaps[cntr]
+            data: this.state.beforeSort
           }
         ]
       }
     });
-    cntr++;
-    if (cntr < orderedSwaps.length) {
-      setTimeout(() => this.animateSwaps(orderedSwaps, cntr, ms), ms);
+  };
+
+  handlePause = () => {
+    this.setState({ sortingPaused: true });
+  };
+
+  handleStop = () => {
+    this.handlePause();
+    this.handleReset();
+  };
+
+  animateSwaps = (orderedSwaps, cntr, ms) => {
+    if (!this.state.sortingPaused) {
+      this.setState({
+        sortingActive: true,
+        data: {
+          labels: orderedSwaps[cntr],
+          datasets: [
+            {
+              ...this.state.data.datasets[0],
+              data: orderedSwaps[cntr]
+            }
+          ]
+        }
+      });
+      cntr++;
+      if (cntr < orderedSwaps.length) {
+        setTimeout(() => this.animateSwaps(orderedSwaps, cntr, ms), ms);
+      } else {
+        this.setState({ sortingActive: false });
+      }
+    } else {
+      this.setState({ sortingActive: false, sortingPaused: false });
     }
   };
 
   sortCheck = (data, mySortResult) => {
     let dataCopy = data.slice();
+    if (dataCopy.length <= 1) return;
+
     let jsSort = dataCopy.sort((a, b) => a - b);
     for (let i = 0; i < dataCopy.length; i++) {
       if (jsSort[i] !== mySortResult[i])
@@ -93,6 +129,8 @@ class App extends Component {
     let ms = 0;
     let orderedSwaps = [];
 
+    if (dataCopy.length <= 1) return;
+
     switch (sortSpeed) {
       case "slowSort":
         ms = 1000;
@@ -104,6 +142,7 @@ class App extends Component {
         ms = 1;
         break;
       default:
+        ms = 1;
         break;
     }
 
@@ -112,7 +151,6 @@ class App extends Component {
         orderedSwaps = [];
         for (let i = 0; i < dataCopy.length; i++) {
           for (let j = 0; j < dataCopy.length; j++) {
-            if (dataCopy.length <= 1) return;
             if (dataCopy[j] > dataCopy[j + 1]) {
               let temp = dataCopy[j];
               dataCopy[j] = dataCopy[j + 1];
@@ -121,6 +159,7 @@ class App extends Component {
             }
           }
         }
+        orderedSwaps.push(dataCopy.slice());
         this.animateSwaps(orderedSwaps, 0, ms);
         try {
           this.sortCheck(data, orderedSwaps[orderedSwaps.length - 1]);
@@ -155,19 +194,16 @@ class App extends Component {
 
       case "insertionSort":
         orderedSwaps = [];
-        if (dataCopy.length <= 1) return;
-        else {
-          for (let i = 1; i < dataCopy.length; i++) {
-            let unsorted = dataCopy[i];
-            let sortedNdx = i - 1;
-            while (dataCopy[sortedNdx] > unsorted && sortedNdx >= 0) {
-              dataCopy[sortedNdx + 1] = dataCopy[sortedNdx];
-              orderedSwaps.push(dataCopy.slice());
-              sortedNdx--;
-            }
-            dataCopy[sortedNdx + 1] = unsorted;
+        for (let i = 1; i < dataCopy.length; i++) {
+          let current = dataCopy[i];
+          let sortedNdx = i - 1;
+          while (dataCopy[sortedNdx] > current && sortedNdx >= 0) {
+            dataCopy[sortedNdx + 1] = dataCopy[sortedNdx];
             orderedSwaps.push(dataCopy.slice());
+            sortedNdx--;
           }
+          dataCopy[sortedNdx + 1] = current;
+          orderedSwaps.push(dataCopy.slice());
         }
         this.animateSwaps(orderedSwaps, 0, ms);
         try {
@@ -182,7 +218,7 @@ class App extends Component {
   };
 
   render() {
-    const { data } = this.state;
+    const { data, sortingActive } = this.state;
     return (
       <div>
         <VisualData data={data} />
@@ -194,7 +230,9 @@ class App extends Component {
               numbers={this.state.numbers}
               onChange={this.handleNumberChange}
             />
-            <button onClick={this.handleNumberSubmit}>New Data</button>
+            {!sortingActive && (
+              <button onClick={this.handleNumberSubmit}>New Data</button>
+            )}
           </label>
         </div>
         <div>
@@ -247,7 +285,17 @@ class App extends Component {
               onChange={this.handleSortSpeedChange}
             />
             <label htmlFor="fastSort">Fastest</label>
-            <button onClick={this.handleSortSubmit}>Sort!</button>
+            {!sortingActive ? (
+              <div>
+                <button onClick={this.handleSortSubmit}>Sort!</button>
+                <button onClick={this.handleReset}>Reset</button>
+              </div>
+            ) : (
+              <div>
+                <button onClick={this.handlePause}>Pause</button>
+                <button onClick={this.handleStop}>Stop</button>
+              </div>
+            )}
           </label>
         </div>
       </div>
