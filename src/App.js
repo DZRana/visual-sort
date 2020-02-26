@@ -112,6 +112,7 @@ class App extends Component {
         orderedSwaps = [];
         for (let i = 0; i < dataCopy.length; i++) {
           for (let j = 0; j < dataCopy.length; j++) {
+            if (dataCopy.length <= 1) return;
             if (dataCopy[j] > dataCopy[j + 1]) {
               let temp = dataCopy[j];
               dataCopy[j] = dataCopy[j + 1];
@@ -152,6 +153,29 @@ class App extends Component {
         }
         break;
 
+      case "insertionSort":
+        orderedSwaps = [];
+        if (dataCopy.length <= 1) return;
+        else {
+          for (let i = 1; i < dataCopy.length; i++) {
+            let unsorted = dataCopy[i];
+            let sortedNdx = i - 1;
+            while (dataCopy[sortedNdx] > unsorted && sortedNdx >= 0) {
+              dataCopy[sortedNdx + 1] = dataCopy[sortedNdx];
+              orderedSwaps.push(dataCopy.slice());
+              sortedNdx--;
+            }
+            dataCopy[sortedNdx + 1] = unsorted;
+            orderedSwaps.push(dataCopy.slice());
+          }
+        }
+        this.animateSwaps(orderedSwaps, 0, ms);
+        try {
+          this.sortCheck(data, orderedSwaps[orderedSwaps.length - 1]);
+        } catch (e) {
+          console.error(e);
+        }
+        break;
       default:
         break;
     }
@@ -190,6 +214,13 @@ class App extends Component {
               onChange={this.handleSortTypeChange}
             />
             <label htmlFor="selectionSort">Selection Sort</label>
+            <input
+              type="radio"
+              id="insertionSort"
+              name="sortType"
+              onChange={this.handleSortTypeChange}
+            />
+            <label htmlFor="insertionSort">Insertion Sort</label>
           </label>
         </div>
         <div>
