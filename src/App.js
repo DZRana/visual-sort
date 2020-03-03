@@ -51,11 +51,11 @@ class App extends Component {
         datasets: [
           {
             label: "Data",
-            backgroundColor: "rgba(255,99,131,0.2)",
-            borderColor: "rgba(255,99,131,1)",
+            backgroundColor: "rgba(0,102,128,0.2)",
+            borderColor: "rgba(0,102,128,1)",
             borderWidth: 1,
-            hoverBackgroundColor: "rgba(255,99,131,0.4)",
-            hoverBorderColor: "rgba(255,99,131,1)",
+            hoverBackgroundColor: "rgba(0,102,128,0.4)",
+            hoverBorderColor: "rgba(0,102,128,1)",
             data: []
           }
         ]
@@ -99,6 +99,7 @@ class App extends Component {
         datasets: [
           {
             ...this.state.data.datasets[0],
+            label: "Data",
             data: dataset
           }
         ]
@@ -112,7 +113,12 @@ class App extends Component {
         labels: this.state.beforeSort,
         datasets: [
           {
-            ...this.state.data.datasets[0],
+            label: "Data",
+            backgroundColor: "rgba(0,102,128,0.2)",
+            borderColor: "rgba(0,102,128,1)",
+            borderWidth: 1,
+            hoverBackgroundColor: "rgba(0,102,128,0.4)",
+            hoverBorderColor: "rgba(0,102,128,1)",
             data: this.state.beforeSort
           }
         ]
@@ -129,31 +135,6 @@ class App extends Component {
     this.handleReset();
   };
 
-  animateSwaps = (orderedSwaps, cntr, ms) => {
-    if (!this.state.sortingPaused) {
-      this.setState({
-        sortingActive: true,
-        data: {
-          labels: orderedSwaps[cntr],
-          datasets: [
-            {
-              ...this.state.data.datasets[0],
-              data: orderedSwaps[cntr]
-            }
-          ]
-        }
-      });
-      cntr++;
-      if (cntr < orderedSwaps.length) {
-        setTimeout(() => this.animateSwaps(orderedSwaps, cntr, ms), ms);
-      } else {
-        this.setState({ sortingActive: false });
-      }
-    } else {
-      this.setState({ sortingActive: false, sortingPaused: false });
-    }
-  };
-
   sortCheck = (data, mySortResult) => {
     let dataCopy = data.slice();
     if (dataCopy.length <= 1) return;
@@ -165,53 +146,54 @@ class App extends Component {
     }
   };
 
-  animateMergeSort = (combinedSwaps, labels, finalDataArr, cntr, ms) => {
-    if (!this.state.sortingPaused) {
-      if (cntr === combinedSwaps.length) {
-        this.setState({
-          sortingActive: true,
-          data: {
-            labels: finalDataArr,
-            datasets: [
-              {
-                label: "Combined",
-                backgroundColor: "rgba(0, 102, 128, 0.2)",
-                borderColor: "rgba(0, 102, 128, 1)",
-                borderWidth: 1,
-                hoverBackgroundColor: "rgba(0, 102, 128, 0.4)",
-                hoverBorderColor: "rgba(0, 102, 128, 1)",
-                data: finalDataArr
-              }
-            ]
-          }
-        });
-      } else {
-        this.setState({
-          sortingActive: true,
-          data: {
-            labels: labels,
-            datasets: combinedSwaps[cntr]
-          }
-        });
-      }
-      cntr++;
-      if (cntr <= combinedSwaps.length) {
-        setTimeout(
-          () =>
-            this.animateMergeSort(
-              combinedSwaps,
-              labels,
-              finalDataArr,
-              cntr,
+  animateSwaps = (sortType, orderedSwaps, cntr, ms) => {
+    switch (sortType) {
+      case "mergeSort":
+        if (!this.state.sortingPaused) {
+          this.setState({
+            sortingActive: true,
+            data: orderedSwaps[cntr]
+          });
+          cntr++;
+          if (cntr < orderedSwaps.length) {
+            setTimeout(
+              () => this.animateSwaps(sortType, orderedSwaps, cntr, ms),
               ms
-            ),
-          ms
-        );
-      } else {
-        this.setState({ sortingActive: false });
-      }
-    } else {
-      this.setState({ sortingActive: false, sortingPaused: false });
+            );
+          } else {
+            this.setState({ sortingActive: false });
+          }
+        } else {
+          this.setState({ sortingActive: false, sortingPaused: false });
+        }
+        break;
+      default:
+        if (!this.state.sortingPaused) {
+          this.setState({
+            sortingActive: true,
+            data: {
+              labels: orderedSwaps[cntr],
+              datasets: [
+                {
+                  ...this.state.data.datasets[0],
+                  data: orderedSwaps[cntr]
+                }
+              ]
+            }
+          });
+          cntr++;
+          if (cntr < orderedSwaps.length) {
+            setTimeout(
+              () => this.animateSwaps(sortType, orderedSwaps, cntr, ms),
+              ms
+            );
+          } else {
+            this.setState({ sortingActive: false });
+          }
+        } else {
+          this.setState({ sortingActive: false, sortingPaused: false });
+        }
+        break;
     }
   };
 
@@ -252,7 +234,7 @@ class App extends Component {
           }
         }
         orderedSwaps.push(dataCopy.slice());
-        this.animateSwaps(orderedSwaps, 0, ms);
+        this.animateSwaps(sortType, orderedSwaps, 0, ms);
         try {
           this.sortCheck(data, orderedSwaps[orderedSwaps.length - 1]);
         } catch (e) {
@@ -275,7 +257,7 @@ class App extends Component {
           dataCopy[ndx] = temp;
           orderedSwaps.push(dataCopy.slice());
         }
-        this.animateSwaps(orderedSwaps, 0, ms);
+        this.animateSwaps(sortType, orderedSwaps, 0, ms);
         try {
           this.sortCheck(data, orderedSwaps[orderedSwaps.length - 1]);
         } catch (e) {
@@ -295,7 +277,7 @@ class App extends Component {
           dataCopy[sortedNdx + 1] = current;
           orderedSwaps.push(dataCopy.slice());
         }
-        this.animateSwaps(orderedSwaps, 0, ms);
+        this.animateSwaps(sortType, orderedSwaps, 0, ms);
         try {
           this.sortCheck(data, orderedSwaps[orderedSwaps.length - 1]);
         } catch (e) {
@@ -304,13 +286,7 @@ class App extends Component {
         break;
 
       case "mergeSort":
-        const mergeSort = (
-          dataCopy,
-          orderedSplitLeft,
-          orderedSwapsLeft,
-          orderedSplitRight,
-          orderedSwapsRight
-        ) => {
+        const mergeSort = dataCopy => {
           if (dataCopy.length <= 1) {
             return dataCopy;
           }
@@ -318,26 +294,39 @@ class App extends Component {
           const middle = Math.floor(dataCopy.length / 2);
 
           const left = dataCopy.slice(0, middle);
-          orderedSplitLeft.push(left);
+          //console.log("left:", left);
+          orderedSwaps.push({
+            labels: left,
+            datasets: [
+              {
+                label: "Left",
+                backgroundColor: "rgba(0, 102, 255, 0.2)",
+                borderColor: "rgba(0, 102, 255,1)",
+                borderWidth: 1,
+                hoverBackgroundColor: "rgba(0, 102, 255,0.4)",
+                hoverBorderColor: "rgba(0, 102, 255,1)",
+                data: left
+              }
+            ]
+          });
           const right = dataCopy.slice(middle);
-          orderedSplitRight.push(right);
+          //console.log("right:", right);
+          orderedSwaps.push({
+            labels: right,
+            datasets: [
+              {
+                label: "Right",
+                backgroundColor: "rgba(0, 102, 0, 0.2)",
+                borderColor: "rgba(0, 102, 0,1)",
+                borderWidth: 1,
+                hoverBackgroundColor: "rgba(0, 102, 0,0.4)",
+                hoverBorderColor: "rgba(0, 102, 0,1)",
+                data: right
+              }
+            ]
+          });
 
-          return merge(
-            mergeSort(
-              left,
-              orderedSplitLeft,
-              orderedSwapsLeft,
-              orderedSplitRight,
-              orderedSwapsRight
-            ),
-            mergeSort(
-              right,
-              orderedSplitLeft,
-              orderedSwapsLeft,
-              orderedSplitRight,
-              orderedSwapsRight
-            )
-          );
+          return merge(mergeSort(left), mergeSort(right));
         };
 
         const merge = (left, right) => {
@@ -349,148 +338,47 @@ class App extends Component {
             if (left[leftNdx] < right[rightNdx]) {
               result.push(left[leftNdx]);
               leftNdx++;
-              orderedSwaps.push(result.slice());
-              orderedSwapsLeft.push(result.slice());
             } else {
               result.push(right[rightNdx]);
               rightNdx++;
-              orderedSwaps.push(result.slice());
-              orderedSwapsRight.push(result.slice());
             }
           }
 
-          return result
+          let last = result
             .concat(left.slice(leftNdx))
             .concat(right.slice(rightNdx));
+          //console.log("merged:", last);
+
+          orderedSwaps.push({
+            labels: last,
+            datasets: [
+              {
+                label: "Merged",
+                backgroundColor: "rgba(0, 102, 128, 0.2)",
+                borderColor: "rgba(0, 102, 128, 1)",
+                borderWidth: 1,
+                hoverBackgroundColor: "rgba(0, 102, 128, 0.4)",
+                hoverBorderColor: "rgba(0, 102, 128, 1)",
+                data: last
+              }
+            ]
+          });
+
+          return last;
         };
-
-        let orderedSplitLeft = [];
-        let orderedSplitRight = [];
-        let singleLefts = [];
-        let singleRights = [];
-        let labels = [];
-        let orderedSwapsLeft = [];
-        let orderedSwapsRight = [];
-        let combinedSwaps = [];
-
-        orderedSwaps.push(
-          mergeSort(
-            dataCopy,
-            orderedSplitLeft,
-            orderedSwapsLeft,
-            orderedSplitRight,
-            orderedSwapsRight
-          )
-        );
-
-        let finalDataArr = orderedSwaps[orderedSwaps.length - 1];
-
-        for (let i = 0; i < orderedSplitLeft.length; i++)
-          if (orderedSplitLeft[i].length === 1)
-            singleLefts.push(orderedSplitLeft[i][0]);
-        for (let i = 0; i < orderedSplitRight.length; i++)
-          if (orderedSplitRight[i].length === 1)
-            singleRights.push(orderedSplitRight[i][0]);
-
-        for (
-          let i = 1;
-          i <= Math.ceil((singleLefts.length + singleRights.length) / 2);
-          i++
-        ) {
-          labels.push(`Pair ${i}`);
-        }
-
-        let newDatasets = [
-          {
-            label: "Left",
-            backgroundColor: "rgba(0, 102, 255, 0.2)",
-            borderColor: "rgba(0, 102, 255,1)",
-            borderWidth: 1,
-            hoverBackgroundColor: "rgba(0, 102, 255,0.4)",
-            hoverBorderColor: "rgba(0, 102, 255,1)",
-            data: singleLefts
-          }
-        ];
-
-        newDatasets.push({
-          label: "Right",
-          backgroundColor: "rgba(0, 102, 0, 0.2)",
-          borderColor: "rgba(0, 102, 0,1)",
-          borderWidth: 1,
-          hoverBackgroundColor: "rgba(0, 102, 0,0.4)",
-          hoverBorderColor: "rgba(0, 102, 0,1)",
-          data: singleRights
-        });
-
-        combinedSwaps.push(newDatasets);
-
-        for (let i = 0; i < orderedSwapsLeft.length; i++) {
-          //console.log(orderedSwapsLeft[i]);
-          let test = [
-            {
-              label: "Left",
-              backgroundColor: "rgba(0, 102, 255, 0.2)",
-              borderColor: "rgba(0, 102, 255,1)",
-              borderWidth: 1,
-              hoverBackgroundColor: "rgba(0, 102, 255,0.4)",
-              hoverBorderColor: "rgba(0, 102, 255,1)",
-              data: orderedSwapsLeft[i]
-            }
-          ];
-
-          test.push({
-            label: "Right",
-            backgroundColor: "rgba(0, 102, 0, 0.2)",
-            borderColor: "rgba(0, 102, 0,1)",
-            borderWidth: 1,
-            hoverBackgroundColor: "rgba(0, 102, 0,0.4)",
-            hoverBorderColor: "rgba(0, 102, 0,1)",
-            data: singleRights
-          });
-
-          combinedSwaps.push(test);
-        }
-
-        const leftLast = combinedSwaps.length - 1;
-
-        for (let i = 0; i < orderedSwapsRight.length; i++) {
-          //console.log(orderedSwapsRight[i]);
-          let test = [
-            {
-              label: "Left",
-              backgroundColor: "rgba(0, 102, 255, 0.2)",
-              borderColor: "rgba(0, 102, 255,1)",
-              borderWidth: 1,
-              hoverBackgroundColor: "rgba(0, 102, 255,0.4)",
-              hoverBorderColor: "rgba(0, 102, 255,1)",
-              data: combinedSwaps[leftLast][0].data
-            }
-          ];
-
-          test.push({
-            label: "Right",
-            backgroundColor: "rgba(0, 102, 0, 0.2)",
-            borderColor: "rgba(0, 102, 0,1)",
-            borderWidth: 1,
-            hoverBackgroundColor: "rgba(0, 102, 0,0.4)",
-            hoverBorderColor: "rgba(0, 102, 0,1)",
-            data: orderedSwapsRight[i]
-          });
-
-          combinedSwaps.push(test);
-        }
-
-        setTimeout(() => {
-          this.animateMergeSort(combinedSwaps, labels, finalDataArr, 0, ms);
-        }, ms);
-
+        mergeSort(dataCopy);
+        this.animateSwaps(sortType, orderedSwaps, 0, ms);
         try {
-          this.sortCheck(data, orderedSwaps[orderedSwaps.length - 1]);
+          this.sortCheck(
+            data,
+            orderedSwaps[orderedSwaps.length - 1].datasets[0].data
+          );
         } catch (e) {
           console.error(e);
         }
         break;
-
+      case "quickSort":
+        break;
       default:
         break;
     }
@@ -545,6 +433,13 @@ class App extends Component {
               onChange={this.handleSortTypeChange}
             />
             <label htmlFor="mergeSort">Merge Sort</label>
+            <input
+              type="radio"
+              id="quickSort"
+              name="sortType"
+              onChange={this.handleSortTypeChange}
+            />
+            <label htmlFor="quickSort">Quick Sort</label>
           </label>
         </div>
         <div>
