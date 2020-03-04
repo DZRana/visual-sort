@@ -149,6 +149,7 @@ class App extends Component {
   animateSwaps = (sortType, orderedSwaps, cntr, ms) => {
     switch (sortType) {
       case "mergeSort":
+      case "quickSort":
         if (!this.state.sortingPaused) {
           this.setState({
             sortingActive: true,
@@ -378,7 +379,102 @@ class App extends Component {
         }
         break;
       case "quickSort":
+        const quickSort = dataCopy => {
+          if (dataCopy.length <= 1) {
+            return dataCopy;
+          } else {
+            let left = [];
+            let right = [];
+            let newArr = [];
+            let pivot = dataCopy.pop();
+            //console.log("pivot:", pivot);
+
+            orderedSwaps.push({
+              labels: [pivot],
+              datasets: [
+                {
+                  label: "Pivot",
+                  backgroundColor: "rgba(0, 102, 128, 0.2)",
+                  borderColor: "rgba(0, 102, 128, 1)",
+                  borderWidth: 1,
+                  hoverBackgroundColor: "rgba(0, 102, 128, 0.4)",
+                  hoverBorderColor: "rgba(0, 102, 128, 1)",
+                  data: [pivot]
+                }
+              ]
+            });
+
+            for (let i = 0; i < dataCopy.length; i++) {
+              if (dataCopy[i] <= pivot) {
+                left.push(dataCopy[i]);
+                //console.log("left:", left);
+                orderedSwaps.push({
+                  labels: left.slice(),
+                  datasets: [
+                    {
+                      label: "Less than Pivot",
+                      backgroundColor: "rgba(0, 102, 255, 0.2)",
+                      borderColor: "rgba(0, 102, 255,1)",
+                      borderWidth: 1,
+                      hoverBackgroundColor: "rgba(0, 102, 255,0.4)",
+                      hoverBorderColor: "rgba(0, 102, 255,1)",
+                      data: left.slice()
+                    }
+                  ]
+                });
+              } else {
+                right.push(dataCopy[i]);
+                //console.log("right:", right);
+                orderedSwaps.push({
+                  labels: right.slice(),
+                  datasets: [
+                    {
+                      label: "Greater than Pivot",
+                      backgroundColor: "rgba(0, 102, 0, 0.2)",
+                      borderColor: "rgba(0, 102, 0,1)",
+                      borderWidth: 1,
+                      hoverBackgroundColor: "rgba(0, 102, 0,0.4)",
+                      hoverBorderColor: "rgba(0, 102, 0,1)",
+                      data: right.slice()
+                    }
+                  ]
+                });
+              }
+            }
+
+            let last = newArr.concat(quickSort(left), pivot, quickSort(right));
+            //console.log("last:", last);
+            orderedSwaps.push({
+              labels: last,
+              datasets: [
+                {
+                  label: "Combined",
+                  backgroundColor: "rgba(0, 102, 128, 0.2)",
+                  borderColor: "rgba(0, 102, 128, 1)",
+                  borderWidth: 1,
+                  hoverBackgroundColor: "rgba(0, 102, 128, 0.4)",
+                  hoverBorderColor: "rgba(0, 102, 128, 1)",
+                  data: last
+                }
+              ]
+            });
+
+            return last;
+          }
+        };
+
+        quickSort(dataCopy);
+        this.animateSwaps(sortType, orderedSwaps, 0, ms);
+        try {
+          this.sortCheck(
+            data,
+            orderedSwaps[orderedSwaps.length - 1].datasets[0].data
+          );
+        } catch (e) {
+          console.error(e);
+        }
         break;
+
       default:
         break;
     }
