@@ -379,129 +379,189 @@ class App extends Component {
         }
         break;
       case "quickSort":
-        let initialArr = dataCopy.slice();
         const quickSort = dataCopy => {
+          let initialArr = dataCopy.slice();
           if (dataCopy.length <= 1) {
             return dataCopy;
           } else {
             let left = [];
             let right = [];
             let newArr = [];
+            let newInit = [];
             let pivot = dataCopy.pop();
             let bgColors = [];
             let brdrColors = [];
             let hBgColors = [];
             let hBrdrColors = [];
 
-            initialArr.forEach(v => {
-              if (v === pivot) {
-                bgColors.push("rgba(255,99,132,0.2)");
-                brdrColors.push("rgba(255,99,132,1)");
-                hBgColors.push("rgba(255,99,132,0.4)");
-                hBrdrColors.push("rgba(255,99,132,1)");
+            //console.log("pivot:", pivot);
+
+            for (let i = 0; i < dataCopy.length; i++) {
+              // BEFORE SWAP: highlight pivot and number being compared (dataCopy[i])
+              initialArr.forEach(v => {
+                if (v === pivot || v === dataCopy[i]) {
+                  bgColors.push("rgba(255,99,132,0.2)");
+                  brdrColors.push("rgba(255,99,132,1)");
+                  hBgColors.push("rgba(255,99,132,0.4)");
+                  hBrdrColors.push("rgba(255,99,132,1)");
+                } else {
+                  bgColors.push("rgba(0,102,128,0.2)");
+                  brdrColors.push("rgba(0,102,128,1)");
+                  hBgColors.push("rgba(0,102,128,0.4)");
+                  hBrdrColors.push("rgba(0,102,128,1)");
+                }
+              });
+
+              orderedSwaps.push({
+                labels: initialArr,
+                datasets: [
+                  {
+                    label: "Data (Comparison w/ Pivot)",
+                    backgroundColor: bgColors,
+                    borderColor: brdrColors,
+                    borderWidth: 1,
+                    hoverBackgroundColor: hBgColors,
+                    hoverBorderColor: hBrdrColors,
+                    data: initialArr
+                  }
+                ]
+              });
+
+              bgColors = [];
+              brdrColors = [];
+              hBgColors = [];
+              hBrdrColors = [];
+              // BEFORE SWAP: highlight pivot and number being compared (dataCopy[i])
+
+              if (dataCopy[i] <= pivot) {
+                left.push(dataCopy[i]);
+                //console.log("left:", left);
+                newInit = newArr.concat(left, pivot, right);
+
+                newInit.forEach(v => {
+                  if (v === pivot) {
+                    bgColors.push("rgba(255,99,132,0.2)");
+                    brdrColors.push("rgba(255,99,132,1)");
+                    hBgColors.push("rgba(255,99,132,0.4)");
+                    hBrdrColors.push("rgba(255,99,132,1)");
+                  } else if (v === dataCopy[i] || left.includes(v)) {
+                    bgColors.push("rgba(0, 102, 255,0.2)");
+                    brdrColors.push("rgba(0, 102, 255,1)");
+                    hBgColors.push("rgba(0, 102, 255,0.4)");
+                    hBrdrColors.push("rgba(0, 102, 255,1)");
+                  } else if (right.includes(v)) {
+                    bgColors.push("rgba(0, 102, 0,0.2)");
+                    brdrColors.push("rgba(0, 102, 0,1)");
+                    hBgColors.push("rgba(0, 102, 0,0.4)");
+                    hBrdrColors.push("rgba(0, 102, 0,1)");
+                  } else {
+                    bgColors.push("rgba(0,102,128,0.2)");
+                    brdrColors.push("rgba(0,102,128,1)");
+                    hBgColors.push("rgba(0,102,128,0.4)");
+                    hBrdrColors.push("rgba(0,102,128,1)");
+                  }
+                });
+
+                orderedSwaps.push({
+                  labels: newInit,
+                  datasets: [
+                    {
+                      label: "Swapped to Left of Pivot",
+                      backgroundColor: bgColors,
+                      borderColor: brdrColors,
+                      borderWidth: 1,
+                      hoverBackgroundColor: hBgColors,
+                      hoverBorderColor: hBrdrColors,
+                      data: newInit
+                    }
+                  ]
+                });
+
+                bgColors = [];
+                brdrColors = [];
+                hBgColors = [];
+                hBrdrColors = [];
               } else {
-                bgColors.push("rgba(0,102,128,0.2)");
-                brdrColors.push("rgba(0,102,128,1)");
-                hBgColors.push("rgba(0,102,128,0.4)");
-                hBrdrColors.push("rgba(0,102,128,1)");
+                right.push(dataCopy[i]);
+                //console.log("right:", right);
+                newInit = newArr.concat(left, pivot, right);
+
+                newInit.forEach(v => {
+                  if (v === pivot) {
+                    bgColors.push("rgba(255,99,132,0.2)");
+                    brdrColors.push("rgba(255,99,132,1)");
+                    hBgColors.push("rgba(255,99,132,0.4)");
+                    hBrdrColors.push("rgba(255,99,132,1)");
+                  } else if (left.includes(v)) {
+                    bgColors.push("rgba(0, 102, 255,0.2)");
+                    brdrColors.push("rgba(0, 102, 255,1)");
+                    hBgColors.push("rgba(0, 102, 255,0.4)");
+                    hBrdrColors.push("rgba(0, 102, 255,1)");
+                  } else if (v === dataCopy[i] || right.includes(v)) {
+                    bgColors.push("rgba(0, 102, 0,0.2)");
+                    brdrColors.push("rgba(0, 102, 0,1)");
+                    hBgColors.push("rgba(0, 102, 0,0.4)");
+                    hBrdrColors.push("rgba(0, 102, 0,1)");
+                  } else {
+                    bgColors.push("rgba(0,102,128,0.2)");
+                    brdrColors.push("rgba(0,102,128,1)");
+                    hBgColors.push("rgba(0,102,128,0.4)");
+                    hBrdrColors.push("rgba(0,102,128,1)");
+                  }
+                });
+
+                orderedSwaps.push({
+                  labels: newInit,
+                  datasets: [
+                    {
+                      label: "Swapped to Right of Pivot",
+                      backgroundColor: bgColors,
+                      borderColor: brdrColors,
+                      borderWidth: 1,
+                      hoverBackgroundColor: hBgColors,
+                      hoverBorderColor: hBrdrColors,
+                      data: newInit
+                    }
+                  ]
+                });
+
+                bgColors = [];
+                brdrColors = [];
+                hBgColors = [];
+                hBrdrColors = [];
               }
+            }
+
+            let last = newArr.concat(quickSort(left), pivot, quickSort(right));
+            //console.log("last:", last);
+
+            initialArr.forEach(() => {
+              bgColors.push("rgba(0,102,128,0.2)");
+              brdrColors.push("rgba(0,102,128,1)");
+              hBgColors.push("rgba(0,102,128,0.4)");
+              hBrdrColors.push("rgba(0,102,128,1)");
             });
 
             orderedSwaps.push({
-              labels: initialArr,
+              labels: last,
               datasets: [
                 {
-                  label: "BEFORE!!!",
+                  label: "Left + Pivot + Right",
                   backgroundColor: bgColors,
                   borderColor: brdrColors,
                   borderWidth: 1,
                   hoverBackgroundColor: hBgColors,
                   hoverBorderColor: hBrdrColors,
-                  data: initialArr
-                }
-              ]
-            });
-
-            console.log("pivot:", pivot);
-
-            /*
-            orderedSwaps.push({
-              labels: [pivot],
-              datasets: [
-                {
-                  label: "Pivot",
-                  backgroundColor: "rgba(0, 102, 128, 0.2)",
-                  borderColor: "rgba(0, 102, 128, 1)",
-                  borderWidth: 1,
-                  hoverBackgroundColor: "rgba(0, 102, 128, 0.4)",
-                  hoverBorderColor: "rgba(0, 102, 128, 1)",
-                  data: [pivot]
-                }
-              ]
-            });
-            */
-
-            for (let i = 0; i < dataCopy.length; i++) {
-              if (dataCopy[i] <= pivot) {
-                left.push(dataCopy[i]);
-                console.log("left:", left);
-
-                /*
-                orderedSwaps.push({
-                  labels: left.slice(),
-                  datasets: [
-                    {
-                      label: "Less than Pivot",
-                      backgroundColor: "rgba(0, 102, 255, 0.2)",
-                      borderColor: "rgba(0, 102, 255,1)",
-                      borderWidth: 1,
-                      hoverBackgroundColor: "rgba(0, 102, 255,0.4)",
-                      hoverBorderColor: "rgba(0, 102, 255,1)",
-                      data: left.slice()
-                    }
-                  ]
-                });
-                */
-              } else {
-                right.push(dataCopy[i]);
-                console.log("right:", right);
-                /*
-                orderedSwaps.push({
-                  labels: right.slice(),
-                  datasets: [
-                    {
-                      label: "Greater than Pivot",
-                      backgroundColor: "rgba(0, 102, 0, 0.2)",
-                      borderColor: "rgba(0, 102, 0,1)",
-                      borderWidth: 1,
-                      hoverBackgroundColor: "rgba(0, 102, 0,0.4)",
-                      hoverBorderColor: "rgba(0, 102, 0,1)",
-                      data: right.slice()
-                    }
-                  ]
-                });
-                */
-              }
-            }
-
-            let last = newArr.concat(quickSort(left), pivot, quickSort(right));
-            console.log("last:", last);
-            /*
-            orderedSwaps.push({
-              labels: last,
-              datasets: [
-                {
-                  label: "Combined",
-                  backgroundColor: "rgba(0, 102, 128, 0.2)",
-                  borderColor: "rgba(0, 102, 128, 1)",
-                  borderWidth: 1,
-                  hoverBackgroundColor: "rgba(0, 102, 128, 0.4)",
-                  hoverBorderColor: "rgba(0, 102, 128, 1)",
                   data: last
                 }
               ]
             });
-            */
+
+            bgColors = [];
+            brdrColors = [];
+            hBgColors = [];
+            hBrdrColors = [];
+
             return last;
           }
         };
