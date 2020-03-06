@@ -379,6 +379,7 @@ class App extends Component {
         }
         break;
       case "quickSort":
+        let initialArr = dataCopy.slice();
         const quickSort = dataCopy => {
           if (dataCopy.length <= 1) {
             return dataCopy;
@@ -387,8 +388,43 @@ class App extends Component {
             let right = [];
             let newArr = [];
             let pivot = dataCopy.pop();
-            //console.log("pivot:", pivot);
+            let bgColors = [];
+            let brdrColors = [];
+            let hBgColors = [];
+            let hBrdrColors = [];
 
+            initialArr.forEach(v => {
+              if (v === pivot) {
+                bgColors.push("rgba(255,99,132,0.2)");
+                brdrColors.push("rgba(255,99,132,1)");
+                hBgColors.push("rgba(255,99,132,0.4)");
+                hBrdrColors.push("rgba(255,99,132,1)");
+              } else {
+                bgColors.push("rgba(0,102,128,0.2)");
+                brdrColors.push("rgba(0,102,128,1)");
+                hBgColors.push("rgba(0,102,128,0.4)");
+                hBrdrColors.push("rgba(0,102,128,1)");
+              }
+            });
+
+            orderedSwaps.push({
+              labels: initialArr,
+              datasets: [
+                {
+                  label: "BEFORE!!!",
+                  backgroundColor: bgColors,
+                  borderColor: brdrColors,
+                  borderWidth: 1,
+                  hoverBackgroundColor: hBgColors,
+                  hoverBorderColor: hBrdrColors,
+                  data: initialArr
+                }
+              ]
+            });
+
+            console.log("pivot:", pivot);
+
+            /*
             orderedSwaps.push({
               labels: [pivot],
               datasets: [
@@ -403,11 +439,14 @@ class App extends Component {
                 }
               ]
             });
+            */
 
             for (let i = 0; i < dataCopy.length; i++) {
               if (dataCopy[i] <= pivot) {
                 left.push(dataCopy[i]);
-                //console.log("left:", left);
+                console.log("left:", left);
+
+                /*
                 orderedSwaps.push({
                   labels: left.slice(),
                   datasets: [
@@ -422,9 +461,11 @@ class App extends Component {
                     }
                   ]
                 });
+                */
               } else {
                 right.push(dataCopy[i]);
-                //console.log("right:", right);
+                console.log("right:", right);
+                /*
                 orderedSwaps.push({
                   labels: right.slice(),
                   datasets: [
@@ -439,11 +480,13 @@ class App extends Component {
                     }
                   ]
                 });
+                */
               }
             }
 
             let last = newArr.concat(quickSort(left), pivot, quickSort(right));
-            //console.log("last:", last);
+            console.log("last:", last);
+            /*
             orderedSwaps.push({
               labels: last,
               datasets: [
@@ -458,7 +501,7 @@ class App extends Component {
                 }
               ]
             });
-
+            */
             return last;
           }
         };
