@@ -1,45 +1,13 @@
+/* eslint-disable no-loop-func */
 import React, { Component } from "react";
 import VisualData from "./components/VisualData";
+import Options from "./components/Options";
 import "./App.css";
-
-/*
-  TODO:
-    1. FIX PAUSE FROM STARTING FROM THE BEGINNING
-*/
-
-/*
-this.setState({
-      data: {
-        datasets: [
-          this.state.data.datasets.push({
-            label: "Data",
-            backgroundColor: "rgba(0, 102, 255, 0.2)",
-            borderColor: "rgba(0, 102, 255,1)",
-            borderWidth: 1,
-            hoverBackgroundColor: "rgba(0, 102, 255,0.4)",
-            hoverBorderColor: "rgba(0, 102, 255,1)",
-            data: singleLefts
-          }),
-          this.state.data.datasets.push({
-            label: "Data",
-            backgroundColor: "rgba(0, 102, 0, 0.2)",
-            borderColor: "rgba(0, 102, 0,1)",
-            borderWidth: 1,
-            hoverBackgroundColor: "rgba(0, 102, 0,0.4)",
-            hoverBorderColor: "rgba(0, 102, 0,1)",
-            data: singleRights
-          })
-        ]
-      }
-    });
-
-*/
 
 class App extends Component {
   constructor() {
     super();
     this.state = {
-      test: 0,
       numbers: 0,
       beforeSort: [],
       sortType: "",
@@ -62,11 +30,6 @@ class App extends Component {
       }
     };
   }
-
-  testState = () => {
-    console.log(this.state.data);
-    this.setState({ test: this.state.test + 1 });
-  };
 
   handleNumberChange = event => {
     this.setState({ numbers: event.target.value });
@@ -198,11 +161,29 @@ class App extends Component {
     }
   };
 
+  visualize = (data, sortType, orderedSwaps, ms) => {
+    this.animateSwaps(sortType, orderedSwaps, 0, ms);
+    try {
+      if (sortType === "mergeSort" || sortType === "quickSort") {
+        this.sortCheck(
+          data,
+          orderedSwaps[orderedSwaps.length - 1].datasets[0].data
+        );
+      } else this.sortCheck(data, orderedSwaps[orderedSwaps.length - 1]);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   handleSortSubmit = () => {
     const { sortSpeed, sortType } = this.state;
     const { data } = this.state.data.datasets[0];
     let dataCopy = data.slice();
     let ms = 0;
+    let bgColors = [];
+    let brdrColors = [];
+    let hBgColors = [];
+    let hBrdrColors = [];
     let orderedSwaps = [];
 
     if (dataCopy.length <= 1) return;
@@ -235,12 +216,7 @@ class App extends Component {
           }
         }
         orderedSwaps.push(dataCopy.slice());
-        this.animateSwaps(sortType, orderedSwaps, 0, ms);
-        try {
-          this.sortCheck(data, orderedSwaps[orderedSwaps.length - 1]);
-        } catch (e) {
-          console.error(e);
-        }
+        this.visualize(data, sortType, orderedSwaps, ms);
         break;
 
       case "selectionSort":
@@ -258,12 +234,51 @@ class App extends Component {
           dataCopy[ndx] = temp;
           orderedSwaps.push(dataCopy.slice());
         }
-        this.animateSwaps(sortType, orderedSwaps, 0, ms);
-        try {
-          this.sortCheck(data, orderedSwaps[orderedSwaps.length - 1]);
-        } catch (e) {
-          console.error(e);
-        }
+        this.visualize(data, sortType, orderedSwaps, ms);
+        break;
+
+      case "heapSort":
+        let arrLength;
+        let i;
+
+        const swap = (dataCopy, i, j) => {
+          const temp = dataCopy[i];
+          dataCopy[i] = dataCopy[j];
+          dataCopy[j] = temp;
+        };
+
+        const hRoot = (dataCopy, i) => {
+          let left = 2 * i + 1;
+          let right = 2 * i + 2;
+          let max = i;
+
+          if (left < arrLength && dataCopy[left] > dataCopy[max]) max = left;
+
+          if (right < arrLength && dataCopy[right] > dataCopy[max]) max = right;
+
+          if (max !== i) {
+            swap(dataCopy, i, max);
+            orderedSwaps.push(dataCopy.slice());
+            hRoot(dataCopy, max);
+          }
+        };
+
+        const heapSort = dataCopy => {
+          arrLength = dataCopy.length;
+
+          for (i = Math.floor(arrLength / 2); i >= 0; --i) hRoot(dataCopy, i);
+
+          for (i = dataCopy.length - 1; i > 0; i--) {
+            swap(dataCopy, 0, i);
+            orderedSwaps.push(dataCopy.slice());
+            arrLength--;
+
+            hRoot(dataCopy, 0);
+          }
+        };
+
+        heapSort(dataCopy);
+        this.visualize(data, sortType, orderedSwaps, ms);
         break;
 
       case "insertionSort":
@@ -278,12 +293,7 @@ class App extends Component {
           dataCopy[sortedNdx + 1] = current;
           orderedSwaps.push(dataCopy.slice());
         }
-        this.animateSwaps(sortType, orderedSwaps, 0, ms);
-        try {
-          this.sortCheck(data, orderedSwaps[orderedSwaps.length - 1]);
-        } catch (e) {
-          console.error(e);
-        }
+        this.visualize(data, sortType, orderedSwaps, ms);
         break;
 
       case "mergeSort":
@@ -368,16 +378,9 @@ class App extends Component {
           return last;
         };
         mergeSort(dataCopy);
-        this.animateSwaps(sortType, orderedSwaps, 0, ms);
-        try {
-          this.sortCheck(
-            data,
-            orderedSwaps[orderedSwaps.length - 1].datasets[0].data
-          );
-        } catch (e) {
-          console.error(e);
-        }
+        this.visualize(data, sortType, orderedSwaps, ms);
         break;
+
       case "quickSort":
         const quickSort = dataCopy => {
           let initialArr = dataCopy.slice();
@@ -389,10 +392,6 @@ class App extends Component {
             let newArr = [];
             let newInit = [];
             let pivot = dataCopy.pop();
-            let bgColors = [];
-            let brdrColors = [];
-            let hBgColors = [];
-            let hBrdrColors = [];
 
             //console.log("pivot:", pivot);
 
@@ -567,15 +566,7 @@ class App extends Component {
         };
 
         quickSort(dataCopy);
-        this.animateSwaps(sortType, orderedSwaps, 0, ms);
-        try {
-          this.sortCheck(
-            data,
-            orderedSwaps[orderedSwaps.length - 1].datasets[0].data
-          );
-        } catch (e) {
-          console.error(e);
-        }
+        this.visualize(data, sortType, orderedSwaps, ms);
         break;
 
       default:
@@ -584,101 +575,21 @@ class App extends Component {
   };
 
   render() {
-    const { data, sortingActive } = this.state;
+    const { data, sortingActive, numbers } = this.state;
     return (
-      <div>
+      <div className="container-fluid">
         <VisualData data={data} />
-        <div>
-          <label>
-            Number:
-            <input
-              type="text"
-              numbers={this.state.numbers}
-              onChange={this.handleNumberChange}
-            />
-            {!sortingActive && (
-              <button onClick={this.handleNumberSubmit}>New Data</button>
-            )}
-          </label>
-        </div>
-        <div>
-          <label>
-            Sort:
-            <input
-              type="radio"
-              id="bubbleSort"
-              name="sortType"
-              onChange={this.handleSortTypeChange}
-            />
-            <label htmlFor="bubbleSort">Bubble Sort</label>
-            <input
-              type="radio"
-              id="selectionSort"
-              name="sortType"
-              onChange={this.handleSortTypeChange}
-            />
-            <label htmlFor="selectionSort">Selection Sort</label>
-            <input
-              type="radio"
-              id="insertionSort"
-              name="sortType"
-              onChange={this.handleSortTypeChange}
-            />
-            <label htmlFor="insertionSort">Insertion Sort</label>
-            <input
-              type="radio"
-              id="mergeSort"
-              name="sortType"
-              onChange={this.handleSortTypeChange}
-            />
-            <label htmlFor="mergeSort">Merge Sort</label>
-            <input
-              type="radio"
-              id="quickSort"
-              name="sortType"
-              onChange={this.handleSortTypeChange}
-            />
-            <label htmlFor="quickSort">Quick Sort</label>
-          </label>
-        </div>
-        <div>
-          <label>
-            Speed:
-            <input
-              type="radio"
-              id="slowSort"
-              name="sortSpeed"
-              onChange={this.handleSortSpeedChange}
-            />
-            <label htmlFor="slowSort">Slow</label>
-            <input
-              type="radio"
-              id="fastSort"
-              name="sortSpeed"
-              onChange={this.handleSortSpeedChange}
-            />
-            <label htmlFor="fastSort">Fast</label>
-            <input
-              type="radio"
-              id="fastestSort"
-              name="sortSpeed"
-              onChange={this.handleSortSpeedChange}
-            />
-            <label htmlFor="fastSort">Fastest</label>
-            {!sortingActive ? (
-              <div>
-                <button onClick={this.handleSortSubmit}>Sort!</button>
-                <button onClick={this.handleReset}>Reset</button>
-                <button onClick={this.testState}>test</button>
-              </div>
-            ) : (
-              <div>
-                <button onClick={this.handlePause}>Pause</button>
-                <button onClick={this.handleStop}>Stop</button>
-              </div>
-            )}
-          </label>
-        </div>
+        <Options
+          sortingActive={sortingActive}
+          numbers={numbers}
+          handleNumberChange={this.handleNumberChange}
+          handleNumberSubmit={this.handleNumberSubmit}
+          handleSortTypeChange={this.handleSortTypeChange}
+          handleSortSpeedChange={this.handleSortSpeedChange}
+          handleSortSubmit={this.handleSortSubmit}
+          handleReset={this.handleReset}
+          handleStop={this.handleStop}
+        />
       </div>
     );
   }
